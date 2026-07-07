@@ -1,0 +1,70 @@
+/**
+ * TaskFlow - Dark Theme Overrides
+ */
+
+[data-theme="dark"] {
+  --color-primary: #818cf8;
+  --color-primary-hover: #6366f1;
+  --color-primary-light: rgba(129, 140, 248, 0.15);
+  --color-secondary: #a78bfa;
+  --color-accent: #f472b6;
+
+  --color-bg: #0f172a;
+  --color-bg-elevated: #1e293b;
+  --color-bg-glass: rgba(30, 41, 59, 0.85);
+  --color-surface: #1e293b;
+  --color-border: rgba(148, 163, 184, 0.12);
+  --color-border-strong: rgba(148, 163, 184, 0.25);
+
+  --color-text: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 40px rgba(129, 140, 248, 0.2);
+}
+
+[data-theme="dark"] .login-page {
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+}
+
+[data-theme="dark"] .modal-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="dark"] .page-loader {
+  background: var(--color-bg);
+}
+
+[data-theme="dark"] .kanban-column {
+  background: rgba(15, 23, 42, 0.5);
+}
+
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(90deg, var(--color-border) 25%, rgba(30, 41, 59, 0.5) 50%, var(--color-border) 75%);
+  background-size: 200% 100%;
+}
+
+[data-theme="dark"] .form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] .theme-toggle i::before {
+  content: "\f185"; /* fa-sun */
+}
+
+[data-theme="dark"] .topbar__btn .fa-moon::before {
+  content: "\f185";
+}
+
+[data-theme="dark"] .login-theme-toggle .fa-moon::before {
+  content: "\f185";
+}
+
+[data-theme="light"] .theme-toggle .fa-moon::before,
+[data-theme="light"] .topbar__btn .fa-moon::before {
+  content: "\f186";
+}

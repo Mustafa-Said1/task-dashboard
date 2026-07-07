@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="TaskFlow - Premium Task Management Dashboard">
+  <title>Dashboard | TaskFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/dark.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body class="dashboard-page">
+  <!-- Page Loader -->
+  <div id="page-loader" class="page-loader" aria-hidden="false" role="status">
+    <div class="page-loader__spinner"></div>
+    <span class="page-loader__text">Loading dashboard...</span>
+  </div>
+
+  <div class="app-layout">
+    <div id="sidebar-overlay" class="sidebar-overlay" aria-hidden="true"></div>
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Main navigation">
+      <div class="sidebar__header">
+        <div class="sidebar__logo">
+          <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+          <span class="sidebar__logo-text">TaskFlow</span>
+        </div>
+        <button id="sidebar-toggle" class="sidebar__toggle" aria-label="Toggle sidebar" aria-expanded="true">
+          <i class="fa-solid fa-angles-left" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar__nav">
+        <a href="#" class="nav-item nav-item--active" data-view="dashboard" aria-current="page">
+          <i class="fa-solid fa-gauge-high" aria-hidden="true"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" data-view="tasks">
+          <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+          <span>Tasks</span>
+        </a>
+        <a href="#" class="nav-item" data-view="statistics">
+          <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+          <span>Statistics</span>
+        </a>
+        <a href="#" class="nav-item" data-view="settings">
+          <i class="fa-solid fa-gear" aria-hidden="true"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar__footer">
+        <button id="logout-btn" class="nav-item nav-item--logout">
+          <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div id="main-content" class="main">
+      <!-- Top Navigation -->
+      <header class="topbar" role="banner">
+        <div class="topbar__left">
+          <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"></nav>
+        </div>
+        <div class="topbar__center">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" id="global-search" class="search-box__input"
+                   placeholder="Search tasks... (Ctrl+F)" aria-label="Search tasks">
+          </div>
+        </div>
+        <div class="topbar__right">
+          <span id="current-date" class="topbar__date"></span>
+          <button id="theme-toggle" class="btn-icon topbar__btn" aria-label="Toggle theme">
+            <i class="fa-solid fa-moon" aria-hidden="true"></i>
+          </button>
+          <div class="dropdown-wrapper">
+            <button id="notification-btn" class="btn-icon topbar__btn" aria-label="Notifications" aria-haspopup="true">
+              <i class="fa-solid fa-bell" aria-hidden="true"></i>
+              <span id="notification-badge" class="badge-count" hidden>0</span>
+            </button>
+            <div id="notification-dropdown" class="dropdown" role="menu" aria-label="Notifications"></div>
+          </div>
+          <div class="dropdown-wrapper">
+            <button id="profile-btn" class="profile-btn" aria-label="User profile" aria-haspopup="true">
+              <img id="profile-avatar" src="assets/avatar.png" alt="Profile" class="profile-btn__avatar">
+              <span id="profile-name" class="profile-btn__name">User</span>
+              <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+            </button>
+            <div id="profile-dropdown" class="dropdown" role="menu">
+              <a href="#" class="dropdown__item" data-view="settings"><i class="fa-solid fa-gear"></i> Settings</a>
+              <button class="dropdown__item" id="logout-btn-dropdown"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="main__body">
+        <p id="welcome-user" class="welcome-text"></p>
+
+        <!-- Dashboard Section -->
+        <section data-section="dashboard" class="section section--active" aria-label="Dashboard overview">
+          <div id="dashboard-summary" class="dashboard-summary"></div>
+
+          <div id="stat-cards" class="stat-cards"></div>
+
+          <div class="dashboard-grid">
+            <div class="dashboard-card">
+              <h2 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h2>
+              <div id="recent-activity" class="activity-list"></div>
+            </div>
+            <div class="dashboard-card">
+              <h2 class="section-title"><i class="fa-solid fa-calendar-days"></i> Upcoming Deadlines</h2>
+              <div id="upcoming-deadlines" class="deadline-list"></div>
+            </div>
+            <div class="dashboard-card">
+              <h2 class="section-title"><i class="fa-solid fa-calendar"></i> Calendar</h2>
+              <div id="calendar-widget"></div>
+            </div>
+            <div class="dashboard-card dashboard-card--progress">
+              <h2 class="section-title"><i class="fa-solid fa-chart-pie"></i> Progress</h2>
+              <div class="progress-circle">
+                <svg viewBox="0 0 120 120" aria-hidden="true">
+                  <circle cx="60" cy="60" r="54" class="progress-circle__bg"/>
+                  <circle id="progress-circle-fill" cx="60" cy="60" r="54" class="progress-circle__fill"/>
+                </svg>
+                <span id="progress-circle-text" class="progress-circle__text">0%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Add -->
+          <form id="quick-add-form" class="quick-add" aria-label="Quick add task">
+            <input type="text" id="quick-add-input" class="quick-add__input" placeholder="Quick add a task..." minlength="3">
+            <button type="submit" class="btn btn--primary btn--sm">Add</button>
+          </form>
+        </section>
+
+        <!-- Tasks Section -->
+        <section data-section="tasks" class="section" hidden aria-label="Task management">
+          <div class="tasks-toolbar">
+            <div id="filter-chips" class="filter-chips" role="group" aria-label="Filter tasks">
+              <button class="filter-chip filter-chip--active" data-filter="all">All</button>
+              <button class="filter-chip" data-filter="pending">Pending</button>
+              <button class="filter-chip" data-filter="in-progress">In Progress</button>
+              <button class="filter-chip" data-filter="completed">Completed</button>
+              <button class="filter-chip" data-filter="favorites">Favorites</button>
+              <button class="filter-chip" data-filter="high">High</button>
+              <button class="filter-chip" data-filter="medium">Medium</button>
+              <button class="filter-chip" data-filter="low">Low</button>
+              <button class="filter-chip" data-filter="today">Today</button>
+              <button class="filter-chip" data-filter="overdue">Overdue</button>
+            </div>
+            <div class="tasks-toolbar__actions">
+              <select id="sort-select" class="form-input form-select" aria-label="Sort tasks">
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+                <option value="priority">Priority</option>
+                <option value="alphabetical">Alphabetical</option>
+                <option value="dueDate">Due Date</option>
+              </select>
+              <div id="view-toggle" class="view-toggle" role="group" aria-label="View mode">
+                <button class="view-btn view-btn--active" data-view-mode="grid" aria-pressed="true" aria-label="Grid view">
+                  <i class="fa-solid fa-grip" aria-hidden="true"></i>
+                </button>
+                <button class="view-btn" data-view-mode="kanban" aria-pressed="false" aria-label="Kanban view">
+                  <i class="fa-solid fa-columns" aria-hidden="true"></i>
+                </button>
+              </div>
+              <button id="fetch-tasks-btn" class="btn btn--secondary btn--sm" aria-label="Import from API">
+                <i class="fa-solid fa-cloud-arrow-down" aria-hidden="true"></i> Fetch
+              </button>
+            </div>
+          </div>
+
+          <div id="tasks-grid-view">
+            <div id="task-grid" class="task-grid"></div>
+            <div id="pagination" class="pagination-wrapper"></div>
+          </div>
+
+          <div id="kanban-board" class="kanban-board" hidden>
+            <div class="kanban-column">
+              <h3 class="kanban-column__title"><i class="fa-regular fa-circle"></i> To Do</h3>
+              <div id="kanban-todo" class="kanban-column__body"></div>
+            </div>
+            <div class="kanban-column">
+              <h3 class="kanban-column__title"><i class="fa-solid fa-spinner"></i> In Progress</h3>
+              <div id="kanban-in-progress" class="kanban-column__body"></div>
+            </div>
+            <div class="kanban-column">
+              <h3 class="kanban-column__title"><i class="fa-solid fa-circle-check"></i> Completed</h3>
+              <div id="kanban-completed" class="kanban-column__body"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Statistics Section -->
+        <section data-section="statistics" class="section" hidden aria-label="Statistics">
+          <div id="statistics-stat-cards" class="stat-cards"></div>
+          <div class="charts-grid">
+            <div class="chart-card">
+              <h3 class="chart-card__title">Status Distribution</h3>
+              <div class="chart-card__canvas"><canvas id="chart-status-pie"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-card__title">Priority Distribution</h3>
+              <div class="chart-card__canvas"><canvas id="chart-priority-bar"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-card__title">Weekly Activity</h3>
+              <div class="chart-card__canvas"><canvas id="chart-weekly-line"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3 class="chart-card__title">Category Distribution</h3>
+              <div class="chart-card__canvas"><canvas id="chart-category-doughnut"></canvas></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section data-section="settings" class="section" hidden aria-label="Settings">
+          <div class="settings-panel">
+            <h2 class="section-title"><i class="fa-solid fa-gear"></i> Settings</h2>
+            <form id="settings-form" class="settings-form">
+              <div class="form-group">
+                <label for="settings-username" class="form-label">Display Name</label>
+                <input type="text" id="settings-username" class="form-input" placeholder="Your name">
+              </div>
+              <div class="form-group">
+                <label for="settings-avatar" class="form-label">Profile Image</label>
+                <div class="settings-avatar">
+                  <img id="settings-avatar-preview" src="assets/avatar.png" alt="Avatar preview" class="settings-avatar__preview">
+                  <input type="file" id="settings-avatar" accept="image/*" class="form-input">
+                </div>
+              </div>
+              <button type="submit" class="btn btn--primary">Save Settings</button>
+            </form>
+
+            <div class="settings-actions">
+              <h3 class="settings-actions__title">Data Management</h3>
+              <div class="settings-actions__buttons">
+                <button id="export-btn" class="btn btn--secondary"><i class="fa-solid fa-file-export"></i> Export JSON</button>
+                <button id="import-btn" class="btn btn--secondary"><i class="fa-solid fa-file-import"></i> Import JSON</button>
+                <input type="file" id="import-file" accept=".json" hidden>
+                <button id="reset-tasks-btn" class="btn btn--danger"><i class="fa-solid fa-trash"></i> Reset Tasks</button>
+              </div>
+            </div>
+
+            <div class="settings-shortcuts">
+              <h3 class="settings-actions__title">Keyboard Shortcuts</h3>
+              <ul class="shortcuts-list">
+                <li><kbd>N</kbd> New Task</li>
+                <li><kbd>Esc</kbd> Close Modal</li>
+                <li><kbd>Ctrl+S</kbd> Save Task</li>
+                <li><kbd>Ctrl+F</kbd> Focus Search</li>
+                <li><kbd>Ctrl+Z</kbd> Undo</li>
+                <li><kbd>Ctrl+Shift+Z</kbd> Redo</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button id="fab" class="fab" aria-label="Add new task">
+    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+  </button>
+
+  <!-- Back to Top -->
+  <button id="back-to-top" class="back-to-top" aria-label="Back to top">
+    <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+  </button>
+
+  <!-- Task Modal -->
+  <div class="modal-overlay" id="task-modal-overlay" aria-hidden="true">
+    <div id="task-modal" class="modal" role="dialog" aria-labelledby="task-modal-title" aria-modal="true">
+      <div class="modal__header">
+        <h2 id="task-modal-title" class="modal__title">Add New Task</h2>
+        <button class="modal__close" data-modal-close aria-label="Close modal">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
+      <form id="task-form" class="modal__body">
+        <div id="task-form-container"></div>
+        <div class="modal__footer">
+          <button type="button" class="btn btn--secondary" data-modal-close>Cancel</button>
+          <button type="submit" id="save-task-btn" class="btn btn--primary" disabled>Save Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal-overlay" id="confirm-modal-overlay" aria-hidden="true">
+    <div id="confirm-modal" class="modal modal--sm" role="alertdialog" aria-labelledby="confirm-title" aria-modal="true">
+      <div class="modal__header">
+        <h2 id="confirm-title" class="modal__title">Confirm</h2>
+        <button class="modal__close" data-modal-close aria-label="Close">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="modal__body">
+        <p class="modal__message">Are you sure?</p>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--secondary" data-modal-close>Cancel</button>
+        <button type="button" id="confirm-btn" class="btn btn--danger">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container" role="alert" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
