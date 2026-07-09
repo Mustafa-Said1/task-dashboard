@@ -8,6 +8,21 @@ import { updateTaskOrder, updateTaskStatus, saveKanbanOrder } from './tasks.js';
 let cardSortable = null;
 let kanbanSortables = [];
 
+/** Coarse pointer devices need slightly more forgiving drag settings. */
+function getSortableTouchOptions() {
+  const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches;
+  return {
+    delay: coarsePointer ? 180 : 0,
+    delayOnTouchOnly: true,
+    touchStartThreshold: 5,
+    fallbackOnBody: true,
+    forceFallback: Boolean(coarsePointer),
+    fallbackTolerance: coarsePointer ? 6 : 3,
+    scroll: true,
+    bubbleScroll: true,
+  };
+}
+
 /**
  * Initialize drag and drop for task cards grid
  * @param {HTMLElement} container
@@ -24,8 +39,7 @@ export function initCardDragDrop(container, onReorder) {
     ghostClass: 'task-card--ghost',
     chosenClass: 'task-card--chosen',
     dragClass: 'task-card--drag',
-    delay: 100,
-    delayOnTouchOnly: true,
+    ...getSortableTouchOptions(),
     onEnd(evt) {
       const orderedIds = [...container.querySelectorAll('.task-card')].map(
         (el) => el.dataset.taskId
@@ -61,8 +75,7 @@ export function initKanbanDragDrop(columns, onStatusChange) {
       ghostClass: 'kanban-card--ghost',
       chosenClass: 'kanban-card--chosen',
       handle: '.kanban-card__drag',
-      delay: 100,
-      delayOnTouchOnly: true,
+      ...getSortableTouchOptions(),
       onEnd(evt) {
         const taskId = evt.item.dataset.taskId;
         const newColumn = evt.to.id;

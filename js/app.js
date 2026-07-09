@@ -33,6 +33,7 @@ const state = {
   currentPage: 1,
   editingTaskId: null,
   viewMode: 'grid',
+  activeKanbanTab: 'todo',
   notifications: [],
 };
 
@@ -66,8 +67,11 @@ async function init() {
 function cacheElements() {
   el.sidebar = document.getElementById('sidebar');
   el.sidebarToggle = document.getElementById('sidebar-toggle');
+  el.mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+  el.sidebarOverlay = document.getElementById('sidebar-overlay');
   el.searchInput = document.getElementById('global-search');
   el.taskGrid = document.getElementById('task-grid');
+  el.kanbanTabs = document.getElementById('kanban-tabs');
   el.kanbanTodo = document.getElementById('kanban-todo');
   el.kanbanInProgress = document.getElementById('kanban-in-progress');
   el.kanbanCompleted = document.getElementById('kanban-completed');
@@ -119,6 +123,11 @@ function loadState() {
 
   const sidebarCollapsed = getItem(STORAGE_KEYS.SIDEBAR, false);
   setSidebarCollapsed(sidebarCollapsed);
+  if (isMobileViewport()) {
+    el.sidebarToggle?.setAttribute('aria-expanded', 'false');
+  } else {
+    updateSidebarToggleState(sidebarCollapsed);
+  }
 
   const filters = getFilters();
   if (el.searchInput) el.searchInput.value = filters.search || '';
@@ -133,6 +142,7 @@ function loadState() {
 /** Bind all event listeners */
 function bindEvents() {
   el.sidebarToggle?.addEventListener('click', toggleSidebar);
+  el.mobileMenuToggle?.addEventListener('click', toggleSidebar);
   el.themeToggle?.addEventListener('click', () => {
     toggleTheme();
     showToast(ToastMessages.THEME_CHANGED, 'info', 2000);
@@ -150,6 +160,8 @@ function bindEvents() {
   el.sortSelect?.addEventListener('change', handleSortChange);
   el.filterChips?.addEventListener('click', handleFilterClick);
   el.viewToggle?.addEventListener('click', handleViewToggle);
+  el.kanbanTabs?.addEventListener('click', handleKanbanTabClick);
+  el.kanbanTabs?.addEventListener('keydown', handleKanbanTabKeydown);
   el.pagination?.addEventListener('click', handlePagination);
 
   el.taskGrid?.addEventListener('click', handleTaskCardAction);
@@ -174,9 +186,10 @@ function bindEvents() {
 
   document.addEventListener('keydown', handleKeyboardShortcuts);
   window.addEventListener('scroll', debounce(handleScroll, 100));
-  document.getElementById('sidebar-overlay')?.addEventListener('click', () => {
-    document.getElementById('sidebar')?.classList.remove('sidebar--open');
-    document.getElementById('sidebar-overlay')?.classList.remove('sidebar-overlay--active');
+  window.addEventListener('resize', debounce(handleResize, 150));
+  el.sidebarOverlay?.addEventListener('click', closeMobileSidebar);
+  document.querySelectorAll('.sidebar [data-view]').forEach((link) => {
+    link.addEventListener('click', closeMobileSidebar);
   });
 
   watchConnectivity(handleConnectivityChange);
@@ -228,6 +241,7 @@ function renderTaskViews() {
   }
 
   renderKanbanBoard();
+  syncKanbanTabs();
 
   destroyAllSortables();
   if (state.viewMode === 'grid' && el.taskGrid?.children.length) {
@@ -302,6 +316,7 @@ function renderSettings() {
 
 /** Handle view change from router */
 function handleViewChange(view) {
+  closeMobileSidebar();
   if (view === 'statistics') {
     setTimeout(() => renderStatistics(), 100);
   }
@@ -470,10 +485,72 @@ function updateViewMode() {
   const kanban = document.getElementById('kanban-board');
   if (grid) grid.hidden = state.viewMode === 'kanban';
   if (kanban) kanban.hidden = state.viewMode !== 'kanban';
+  if (el.kanbanTabs) el.kanbanTabs.hidden = state.viewMode !== 'kanban' || !isMobileViewport();
 
   document.querySelectorAll('[data-view-mode]').forEach((btn) => {
     btn.classList.toggle('view-btn--active', btn.dataset.viewMode === state.viewMode);
     btn.setAttribute('aria-pressed', String(btn.dataset.viewMode === state.viewMode));
+  });
+
+  syncKanbanTabs();
+}
+
+/** Handle mobile kanban tab click */
+function handleKanbanTabClick(e) {
+  const tab = e.target.closest('[data-kanban-tab]');
+  if (!tab) return;
+  setActiveKanbanTab(tab.dataset.kanbanTab, true);
+}
+
+/** Handle keyboard navigation for mobile kanban tabs */
+function handleKanbanTabKeydown(e) {
+  const tabs = [...document.querySelectorAll('[data-kanban-tab]')];
+  const currentIndex = tabs.findIndex((tab) => tab === document.activeElement);
+  if (currentIndex === -1) return;
+
+  let nextIndex = currentIndex;
+  if (e.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+  else if (e.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+  else if (e.key === 'Home') nextIndex = 0;
+  else if (e.key === 'End') nextIndex = tabs.length - 1;
+  else return;
+
+  e.preventDefault();
+  setActiveKanbanTab(tabs[nextIndex].dataset.kanbanTab, true);
+  tabs[nextIndex].focus();
+}
+
+/** Activate a kanban tab on mobile */
+function setActiveKanbanTab(status, focusPanel = false) {
+  if (!['todo', 'in-progress', 'completed'].includes(status)) return;
+  state.activeKanbanTab = status;
+  syncKanbanTabs();
+
+  if (focusPanel && isMobileViewport()) {
+    document.querySelector(`[data-kanban-panel="${status}"]`)?.focus({ preventScroll: true });
+  }
+}
+
+/** Keep kanban tabs and panels in sync with the active breakpoint */
+function syncKanbanTabs() {
+  const mobile = isMobileViewport();
+  const kanbanActive = state.viewMode === 'kanban';
+
+  if (el.kanbanTabs) {
+    el.kanbanTabs.hidden = !kanbanActive || !mobile;
+  }
+
+  document.querySelectorAll('[data-kanban-tab]').forEach((tab) => {
+    const active = tab.dataset.kanbanTab === state.activeKanbanTab;
+    tab.classList.toggle('kanban-tab--active', active);
+    tab.setAttribute('aria-selected', String(active));
+    tab.tabIndex = active ? 0 : -1;
+  });
+
+  document.querySelectorAll('[data-kanban-panel]').forEach((panel) => {
+    const active = panel.dataset.kanbanPanel === state.activeKanbanTab;
+    panel.hidden = mobile && kanbanActive ? !active : false;
+    panel.tabIndex = mobile && active ? 0 : -1;
   });
 }
 
@@ -616,15 +693,63 @@ function handleQuickAdd(e) {
 
 /** Toggle sidebar */
 function toggleSidebar() {
+  if (isMobileViewport()) {
+    const isOpen = el.sidebar?.classList.contains('sidebar--open');
+    if (isOpen) closeMobileSidebar();
+    else openMobileSidebar();
+    return;
+  }
+
   const collapsed = !getItem(STORAGE_KEYS.SIDEBAR, false);
   setSidebarCollapsed(collapsed);
   setItem(STORAGE_KEYS.SIDEBAR, collapsed);
+  updateSidebarToggleState(collapsed);
+}
 
-  if (window.innerWidth <= 768) {
-    const sidebar = document.getElementById('sidebar');
-    sidebar?.classList.toggle('sidebar--open');
-    document.getElementById('sidebar-overlay')?.classList.toggle('sidebar-overlay--active');
+/** Open mobile sidebar drawer */
+function openMobileSidebar() {
+  el.sidebar?.classList.add('sidebar--open');
+  el.sidebarOverlay?.classList.add('sidebar-overlay--active');
+  el.sidebarOverlay?.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('sidebar-open');
+  el.mobileMenuToggle?.setAttribute('aria-expanded', 'true');
+  el.mobileMenuToggle?.setAttribute('aria-label', 'Close navigation');
+  el.sidebarToggle?.setAttribute('aria-expanded', 'true');
+}
+
+/** Close mobile sidebar drawer */
+function closeMobileSidebar() {
+  el.sidebar?.classList.remove('sidebar--open');
+  el.sidebarOverlay?.classList.remove('sidebar-overlay--active');
+  el.sidebarOverlay?.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('sidebar-open');
+  el.mobileMenuToggle?.setAttribute('aria-expanded', 'false');
+  el.mobileMenuToggle?.setAttribute('aria-label', 'Open navigation');
+
+  el.sidebarToggle?.setAttribute(
+    'aria-expanded',
+    isMobileViewport() ? 'false' : String(!getItem(STORAGE_KEYS.SIDEBAR, false))
+  );
+}
+
+/** Reflect desktop sidebar collapsed state for assistive tech */
+function updateSidebarToggleState(collapsed) {
+  el.sidebarToggle?.setAttribute('aria-expanded', String(!collapsed));
+}
+
+/** Current responsive drawer breakpoint */
+function isMobileViewport() {
+  return window.matchMedia('(max-width: 767px)').matches;
+}
+
+/** Keep responsive-only UI state correct after breakpoint changes */
+function handleResize() {
+  if (!isMobileViewport()) {
+    closeMobileSidebar();
+    setSidebarCollapsed(getItem(STORAGE_KEYS.SIDEBAR, false));
+    updateSidebarToggleState(getItem(STORAGE_KEYS.SIDEBAR, false));
   }
+  syncKanbanTabs();
 }
 
 /** Handle logout */
@@ -672,7 +797,10 @@ function handleKeyboardShortcuts(e) {
     e.preventDefault();
     openTaskModal();
   }
-  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Escape') {
+    closeModal();
+    closeMobileSidebar();
+  }
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault();
     if (document.getElementById('task-modal')?.closest('.modal-overlay--active')) {

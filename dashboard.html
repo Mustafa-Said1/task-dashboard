@@ -68,6 +68,9 @@
       <!-- Top Navigation -->
       <header class="topbar" role="banner">
         <div class="topbar__left">
+          <button id="mobile-menu-toggle" class="btn-icon mobile-menu-toggle" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false">
+            <i class="fa-solid fa-bars" aria-hidden="true"></i>
+          </button>
           <nav id="breadcrumb" class="breadcrumb" aria-label="Breadcrumb"></nav>
         </div>
         <div class="topbar__center">
@@ -186,16 +189,31 @@
             <div id="pagination" class="pagination-wrapper"></div>
           </div>
 
+          <div id="kanban-tabs" class="kanban-tabs" role="tablist" aria-label="Kanban columns" hidden>
+            <button id="kanban-tab-todo" class="kanban-tab kanban-tab--active" type="button" role="tab"
+                    data-kanban-tab="todo" aria-controls="kanban-column-todo" aria-selected="true">
+              To Do
+            </button>
+            <button id="kanban-tab-in-progress" class="kanban-tab" type="button" role="tab"
+                    data-kanban-tab="in-progress" aria-controls="kanban-column-in-progress" aria-selected="false" tabindex="-1">
+              In Progress
+            </button>
+            <button id="kanban-tab-completed" class="kanban-tab" type="button" role="tab"
+                    data-kanban-tab="completed" aria-controls="kanban-column-completed" aria-selected="false" tabindex="-1">
+              Completed
+            </button>
+          </div>
+
           <div id="kanban-board" class="kanban-board" hidden>
-            <div class="kanban-column">
+            <div id="kanban-column-todo" class="kanban-column" data-kanban-panel="todo" role="tabpanel" aria-labelledby="kanban-tab-todo">
               <h3 class="kanban-column__title"><i class="fa-regular fa-circle"></i> To Do</h3>
               <div id="kanban-todo" class="kanban-column__body"></div>
             </div>
-            <div class="kanban-column">
+            <div id="kanban-column-in-progress" class="kanban-column" data-kanban-panel="in-progress" role="tabpanel" aria-labelledby="kanban-tab-in-progress" hidden>
               <h3 class="kanban-column__title"><i class="fa-solid fa-spinner"></i> In Progress</h3>
               <div id="kanban-in-progress" class="kanban-column__body"></div>
             </div>
-            <div class="kanban-column">
+            <div id="kanban-column-completed" class="kanban-column" data-kanban-panel="completed" role="tabpanel" aria-labelledby="kanban-tab-completed" hidden>
               <h3 class="kanban-column__title"><i class="fa-solid fa-circle-check"></i> Completed</h3>
               <div id="kanban-completed" class="kanban-column__body"></div>
             </div>
